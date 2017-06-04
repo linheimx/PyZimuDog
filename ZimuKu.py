@@ -1,10 +1,10 @@
 import re
 
 from typing import List
-
 from bs4 import Tag
 from bs4 import BeautifulSoup
 import requests
+
 
 base_url = 'http://www.zimuku.net'
 
@@ -96,11 +96,14 @@ def download_Zimu(url: str):
 
 '''-------------------------> go <----------------------------'''
 
-list_zimu = get_RelatedList('本杰明·巴顿奇事')
-if list_zimu.__len__() > 0:
-    zimu = list_zimu[0]
-    ones = zimu['list_zimu']
-    one = ones[0]
+if __name__ == '__main__':
+    movie = input("请输入电影名称:")
+    list_zimu = get_RelatedList('本杰明·巴顿奇事')
 
-    url = get_DownloadUrl(one['detail_url'])
-    download_Zimu(url)
+    # if list_zimu.__len__() > 0:
+    #     zimu = list_zimu[0]
+    #     ones = zimu['list_zimu']
+    #     one = ones[0]
+    #
+    #     # url = get_DownloadUrl(one['detail_url'])
+    #     # download_Zimu(url)
