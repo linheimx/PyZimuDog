@@ -5,7 +5,6 @@ from bs4 import Tag
 from bs4 import BeautifulSoup
 import requests
 
-
 base_url = 'http://www.zimuku.net'
 
 
@@ -23,12 +22,15 @@ def get_RelatedList(keyword: str) -> list:
     list_movie = list()
 
     div_blocks = dom.find_all('div', class_='item prel clearfix')
-    for div_block in div_blocks:  # type:Tag
-        movie = get_MoveInfo(div_block)
-        if movie:
-            list_movie.append(movie)
-            print(movie)
-        break
+    try:
+        for div_block in div_blocks:  # type:Tag
+            movie = get_MoveInfo(div_block)
+            if movie:
+                list_movie.append(movie)
+                print(movie)
+            break
+    except BaseException:
+        pass
     return list_movie
 
 
@@ -44,27 +46,30 @@ def get_MoveInfo(div_block) -> dict:
     if None == hit1:
         return None
 
-    img = hit1[0].findChild()
-    movie['pic'] = 'http:' + img['data-original']
-    movie['name'] = hit1[1].string
+    try:
+        img = hit1[0].findChild()
+        movie['pic'] = 'http:' + img['data-original']
+        movie['name'] = hit1[1].string
 
-    div_items = div_block.find_all('div', class_='sublist')
-    for div_item in div_items:
-        trs = div_item.find_all('tr')
+        div_items = div_block.find_all('div', class_='sublist')
+        for div_item in div_items:
+            trs = div_item.find_all('tr')
 
-        list_one = list()
-        for tr in trs:
-            #  ------------------------------> zimu <-------------------------------
-            zimu = dict()
-            # language
-            img = tr.find('img')  # type:Tag
-            zimu['language_pic'] = base_url + '/' + img.attrs['src']
-            zimu['language'] = img.attrs['alt'].lstrip()
-            # detail_url
-            a = tr.find('a')
-            zimu['detail_url'] = base_url + a.attrs['href']
-            list_one.append(zimu)
-        movie['list_zimu'] = list_one
+            list_one = list()
+            for tr in trs:
+                #  ------------------------------> zimu <-------------------------------
+                zimu = dict()
+                # language
+                img = tr.find('img')  # type:Tag
+                zimu['language_pic'] = base_url + '/' + img.attrs['src']
+                zimu['language'] = img.attrs['alt'].lstrip()
+                # detail_url
+                a = tr.find('a')
+                zimu['detail_url'] = base_url + a.attrs['href']
+                list_one.append(zimu)
+            movie['list_zimu'] = list_one
+    except BaseException:
+        pass
     return movie
 
 
@@ -100,10 +105,11 @@ if __name__ == '__main__':
     movie = input("请输入电影名称:")
     list_zimu = get_RelatedList('本杰明·巴顿奇事')
 
-    # if list_zimu.__len__() > 0:
-    #     zimu = list_zimu[0]
-    #     ones = zimu['list_zimu']
-    #     one = ones[0]
-    #
-    #     # url = get_DownloadUrl(one['detail_url'])
-    #     # download_Zimu(url)
+    if list_zimu.__len__() > 0:
+        zimu = list_zimu[0]
+        ones = zimu['list_zimu']
+        one = ones[0]
+
+        url = get_DownloadUrl(one['detail_url'])
+        download_Zimu(url)
+        print("---> ok")
