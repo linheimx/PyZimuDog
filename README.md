@@ -24,6 +24,7 @@
 3. 第三步
 ![](https://github.com/linheimx/ZimuDog_Server/blob/master/art/3.png)
 
+至此完成，字幕被下载到ZimuKu.py这个文件的同级目录
 
 
 ## 待改善的地方
