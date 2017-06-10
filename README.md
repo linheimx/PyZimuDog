@@ -4,7 +4,7 @@
 ## 安装依赖
 在ubuntu的shell里面:
 1. 请定位到 ZimuDog 这个目录
-2. 请输入``python setup.py``
+2. 请输入``python setup.py develop``
 3. 等待依赖下载完成
 
 ## 如何使用
