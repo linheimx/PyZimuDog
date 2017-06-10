@@ -1,6 +1,12 @@
 # ZimuDog_Server
 用python爬取字幕库的的字幕信息
 
+## 安装依赖
+在ubuntu的shell里面:
+1. 请定位到 ZimuDog 这个目录
+2. 请输入``python setup.py``
+3. 等待依赖下载完成
+
 ## 如何使用
 在ubuntu的shell里面:
 1. 请定位到 ZimuKu.py 这个文件的位置
@@ -22,6 +28,3 @@
 
 ## 待改善的地方
 1. 增加字幕下载的路径
-
-## 其它
-今晚月色真美
