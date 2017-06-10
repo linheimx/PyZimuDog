@@ -8,20 +8,16 @@
 3. 在交互式的命令行中输入你要搜索的电影名称
 
 **具体步骤：**
-<p1>
-step 1:
+
+1. 第一步
 ![](https://github.com/linheimx/ZimuDog_Server/blob/master/art/1.png)
-</p>
 
-<p1>
-step 2:
+2. 第二步
 ![](https://github.com/linheimx/ZimuDog_Server/blob/master/art/2.png)
-</p>
 
-<p1>
-step 3:
+3. 第三步
 ![](https://github.com/linheimx/ZimuDog_Server/blob/master/art/3.png)
-</p>
+
 
 
 ## 待改善的地方
