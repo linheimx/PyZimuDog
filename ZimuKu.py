@@ -8,69 +8,80 @@ import requests
 base_url = 'http://www.zimuku.net'
 
 
-def get_RelatedList(keyword: str) -> list:
+class Movie:
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = ""
+        self.detail_url = ""
+
+
+class Zimu:
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = ""
+        self.detail_url = ""
+
+
+def get_MovieList(keyword: str) -> List[Movie]:
     '''
-    从关键字找出相关的字幕信息
-    :param keyword: 
-    :return: 
+    根据关键字返回一堆电影信息
+    :param keyword:
+    :return:
     '''
     r = requests.get(base_url + '/search?ad=1&q={0}'.format(keyword))
-    print('---> search url ：{0}'.format(r.request.url))
 
     dom = BeautifulSoup(r.text, 'html.parser')
 
-    list_movie = list()
+    list_movie = []
 
     div_blocks = dom.find_all('div', class_='item prel clearfix')
     try:
         for div_block in div_blocks:  # type:Tag
-            movie = get_MoveInfo(div_block)
+            movie = get_Movie(div_block)
             if movie:
                 list_movie.append(movie)
-                print(movie)
-            break
     except BaseException:
         pass
     return list_movie
 
 
-def get_MoveInfo(div_block) -> dict:
+def get_Movie(item: Tag) -> Movie:
     '''
-    分析网页，获得电影的信息
-    :param div_block: 
-    :return: 
+    解析一部电影
+    :param item:
+    :return:
     '''
-    movie = dict()
-
-    hit1 = div_block.find_all('a', href=re.compile(r'/subs/\d+.html'))  # type:List[Tag]
-    if None == hit1:
-        return None
 
     try:
-        img = hit1[0].findChild()
-        movie['pic'] = 'http:' + img['data-original']
-        movie['name'] = hit1[1].string
+        movie = Movie()
 
-        div_items = div_block.find_all('div', class_='sublist')
-        for div_item in div_items:
-            trs = div_item.find_all('tr')
-
-            list_one = list()
-            for tr in trs:
-                #  ------------------------------> zimu <-------------------------------
-                zimu = dict()
-                # language
-                img = tr.find('img')  # type:Tag
-                zimu['language_pic'] = base_url + '/' + img.attrs['src']
-                zimu['language'] = img.attrs['alt'].lstrip()
-                # detail_url
-                a = tr.find('a')
-                zimu['detail_url'] = base_url + a.attrs['href']
-                list_one.append(zimu)
-            movie['list_zimu'] = list_one
+        a = item.select_one('div.title p a')  # type:Tag
+        movie.detail_url = a['href']
+        movie.name = a.findChild().text
     except BaseException:
         pass
+
     return movie
+
+
+def get_ZimusByMovie(url: str) -> List[Zimu]:
+    r = requests.get(base_url + "/" + url)
+    dom = BeautifulSoup(r.text, 'html.parser')
+
+    list_zimu = []
+
+    father = dom.select_one('body tbody')  # type: Tag
+    trs = father.select('tr')  # type:List[Tag]
+    for tr in trs:
+        try:
+            a = tr.select_one('td a')
+            zimu = Zimu()
+            zimu.detail_url = a['href']
+            zimu.name = a['title']
+            list_zimu.append(zimu)
+        except BaseException:
+            continue
+    return list_zimu
 
 
 def get_DownloadUrl(detail_url: str):
@@ -79,22 +90,22 @@ def get_DownloadUrl(detail_url: str):
     :param detail_url: 
     :return str: 
     '''
-    r = requests.get(detail_url)
+    r = requests.get(base_url + '/' + detail_url)
     hitUrl = re.findall(re.compile('/download/\w*"(?=>)'), r.text)[0]
     hitUrl = base_url + hitUrl
     return hitUrl
 
 
-def download_Zimu(url: str):
+def download_Zimu(url: str, filename: str):
     '''
     下载字幕
     :param url: 
     :return: 
     '''
-    print('download:' + url)
+    # print('download:' + url)
     r = requests.get(url)
     if r.status_code == 200:
-        with open('test.srt', 'wb') as f:
+        with open(filename, 'wb') as f:
             for chunk in r:
                 f.write(chunk)
 
@@ -102,14 +113,34 @@ def download_Zimu(url: str):
 '''-------------------------> go <----------------------------'''
 
 if __name__ == '__main__':
+    # step1
     movie = input("请输入电影名称:")
-    list_zimu = get_RelatedList('本杰明·巴顿奇事')
+    list_movie = get_MovieList(movie)
 
-    if list_zimu.__len__() > 0:
-        zimu = list_zimu[0]
-        ones = zimu['list_zimu']
-        one = ones[0]
+    for index, movie in enumerate(list_movie):
+        print(index, movie.name)
 
-        url = get_DownloadUrl(one['detail_url'])
-        download_Zimu(url)
-        print("---> ok")
+    # step2
+    try:
+        index = int(input('请输入电影的下标'))
+    except BaseException:
+        exit(-1)
+
+    if index >= 0 and index < list_movie.__sizeof__():
+        print('--->：' + list_movie[index].name)
+        movie = list_movie[index]
+        list_zimu = get_ZimusByMovie(movie.detail_url)
+        for index, zimu in enumerate(list_zimu):
+            print(index, zimu.name)
+
+    # step3
+    try:
+        index = int(input('请输入字幕的下标:'))
+    except BaseException:
+        exit(-1)
+
+    if index >= 0 and index < list_zimu.__sizeof__():
+        print('--->：' + list_zimu[index].name)
+        url = get_DownloadUrl(list_zimu[index].detail_url)
+        download_Zimu(url, zimu.name)
+        print("下载完成")
