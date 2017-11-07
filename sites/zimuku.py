@@ -1,7 +1,8 @@
 from functools import lru_cache
 
+import time
 from bs4 import BeautifulSoup, Tag
-from models import Movie, PageMovie, Zimu
+from models import Movie, PageMovie, Zimu, Resp
 from utils import print_obj, fetch_text
 
 base_url = 'http://www.zimuku.net'
@@ -13,21 +14,21 @@ def get_movie_list(kw_movie, pageIndex=0):
     url = api_movies.format(movie=kw_movie, page_index=pageIndex)
     html = fetch_text(url)
     dom = BeautifulSoup(html, 'html.parser')
+    try:
+        # 1.movie
+        div_items = dom.find_all('div', 'item prel clearfix')  # type:Tag
+        movies = []
+        for div in div_items:
+            movie = process_movie_item(div)
+            movies.append(movie)
 
-    # movie
-    div_items = dom.find_all('div', 'item prel clearfix')  # type:Tag
-    movies = []
-    for div in div_items:
-        movie = process_movie_item(div)
-        movies.append(movie)
-
-    # page next
-    haveNext = True
-    div_page = dom.find('div', 'pagination l clearfix')
-    index, haveNext = process_page_next(div_page)
-
-    page = PageMovie(movies, index, haveNext)
-    print_obj(page)
+        # 2.page next
+        div_page = dom.find('div', 'pagination l clearfix')
+        index, haveNext = process_page_next(div_page)
+        page = PageMovie(movies, index, haveNext)
+        return Resp(page)
+    except Exception as e:
+        return Resp(errorMsg=e.__repr__())
 
 
 def process_page_next(div):
@@ -70,12 +71,16 @@ def i_____________________________________________________():
 def get_zimu_list(url):
     html = fetch_text(url)
     dom = BeautifulSoup(html, 'html.parser')
-    tbody = dom.select('div > table > tbody')[0]
-    trs = tbody.select('tr')
-    zimus = []
-    for tr in trs:
-        zimu = process_zimu(tr)
-        zimus.append(zimu)
+    try:
+        tbody = dom.select('div > table > tbody')[0]
+        trs = tbody.select('tr')
+        zimus = []
+        for tr in trs:
+            zimu = process_zimu(tr)
+            zimus.append(zimu)
+        return Resp(zimus)
+    except Exception as e:
+        return Resp(errorMsg=e.__repr__())
 
     print_obj(zimus)
 
@@ -99,13 +104,20 @@ def ii_____________________________________________________():
 def get_download_url(url):
     html = fetch_text(url)
     dom = BeautifulSoup(html, 'html.parser')
-    a = dom.select('a[dlurl]')[0]
-    url = base_url + a['dlurl']
-    return url
+    try:
+        a = dom.select('a[dlurl]')[0]
+        url = base_url + a['dlurl']
+        return Resp(url)
+    except Exception as e:
+        return Resp(errorMsg=e.__repr__())
 
 
 if __name__ == '__main__':
-    get_movie_list('越狱')
-    # # get_zimu_list('http://www.zimuku.net/subs/32677.html')
-    # r = get_download_url('http://www.zimuku.net/detail/44173.html')
-    # print(r)
+    # page = get_movie_list('越狱')
+    # print(page.json())
+
+    # ret = get_zimu_list('http://www.zimuku.net/subs/32677.html')
+    # print(ret.json())
+
+    r = get_download_url('http://www.zimuku.net/detail/44173.html')
+    print(r.json())
